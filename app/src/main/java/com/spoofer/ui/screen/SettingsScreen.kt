@@ -206,6 +206,12 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    "Developed by @r69shabh",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
             }
 
             Spacer(Modifier.height(32.dp))

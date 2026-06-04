@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 android {
@@ -27,9 +28,20 @@ android {
         buildConfigField("String", "ORS_API_KEY", "\"$orsApiKey\"")
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("spoofer-release.keystore")
+            storePassword = "spoofer123"
+            keyAlias = "spoofer"
+            keyPassword = "spoofer123"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
