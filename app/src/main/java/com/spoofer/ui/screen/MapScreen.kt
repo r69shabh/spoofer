@@ -4,8 +4,10 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +19,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.PlayArrow
@@ -43,8 +47,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -97,11 +104,14 @@ fun MapScreen(
     val routeInfo by spoofViewModel.routeInfo.collectAsState()
     val routePreview by spoofViewModel.routePreview.collectAsState()
     val remainingDistance by spoofViewModel.remainingDistance.collectAsState()
+    val isLoadingRoute by spoofViewModel.isLoadingRoute.collectAsState()
+    val routeError by spoofViewModel.routeError.collectAsState()
     val showSetupDialog by spoofViewModel.showSetupDialog.collectAsState()
 
     val favorites by favoriteViewModel.favorites.collectAsState()
 
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     val scaffoldState = rememberBottomSheetScaffoldState()
 
     var showFavoritesSheet by remember { mutableStateOf(false) }
@@ -124,13 +134,17 @@ fun MapScreen(
     )
 
     val isJoystickActive = isSpoofing && spoofMode == SpoofMode.JOYSTICK
+    val isJoystickPreview = !isSpoofing && spoofMode == SpoofMode.JOYSTICK
 
     val onStartStop: () -> Unit = {
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         if (isSpoofing) {
             spoofViewModel.stopSpoofing()
         } else {
             when (selectedMode) {
-                SpoofMode.STATIC -> targetLatLng?.let { spoofViewModel.startStaticSpoof(it) }
+                SpoofMode.STATIC -> targetLatLng?.let {
+                    spoofViewModel.startStaticSpoof(it)
+                }
                 SpoofMode.DIRECTIONS -> {
                     val origin = originLatLng ?: cameraPosition
                     val dest = targetLatLng
@@ -143,6 +157,12 @@ fun MapScreen(
                         spoofViewModel.startJoystick(origin, joySpeedKmh / 3.6f)
                     }
             }
+        }
+    }
+
+    LaunchedEffect(isSpoofing) {
+        if (isSpoofing && currentSpoofedLocation != null) {
+            cameraState.animate(CameraUpdateFactory.newLatLngZoom(currentSpoofedLocation!!, 17f))
         }
     }
 
@@ -222,6 +242,8 @@ fun MapScreen(
                 currentSpeedKmh = currentSpeedKmh,
                 transportMode = transportMode, onTransportModeChange = { mapViewModel.setTransportMode(it) },
                 routeInfo = routeInfo, remainingDistance = remainingDistance,
+                isLoadingRoute = isLoadingRoute,
+                routeError = routeError,
                 joySpeedKmh = joySpeedKmh, onJoySpeedChange = { mapViewModel.setJoySpeedKmh(it) },
                 totalDistanceTraveled = totalDistanceTraveled, currentHeading = currentHeading,
             )
@@ -251,6 +273,7 @@ fun MapScreen(
                         mapToolbarEnabled = false,
                     ),
                 onMapClick = { latLng ->
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     if (selectedMode == SpoofMode.DIRECTIONS && targetLatLng != null) {
                         mapViewModel.setOrigin(latLng)
                         originMarkerState.position = latLng
@@ -321,7 +344,16 @@ fun MapScreen(
 
             JoystickOverlay(
                 isActive = isJoystickActive,
+                isPreview = isJoystickPreview,
                 onInput = { spoofViewModel.updateJoystick(it.angle, it.magnitude, joySpeedKmh / 3.6f) },
+            )
+
+            val fabInteraction = remember { MutableInteractionSource() }
+            val fabPressed by fabInteraction.collectIsPressedAsState()
+            val fabScale by animateFloatAsState(
+                targetValue = if (fabPressed) 0.96f else 1f,
+                animationSpec = spring(dampingRatio = 0.6f, stiffness = 800f),
+                label = "fab_scale",
             )
 
             SmallFloatingActionButton(
@@ -349,7 +381,9 @@ fun MapScreen(
                 modifier =
                     Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 80.dp),
+                        .padding(bottom = 80.dp)
+                        .scale(fabScale),
+                interactionSource = fabInteraction,
                 shape = androidx.compose.foundation.shape.CircleShape,
                 containerColor =
                     if (isSpoofing) {

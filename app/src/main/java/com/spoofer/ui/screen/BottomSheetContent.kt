@@ -1,11 +1,13 @@
 package com.spoofer.ui.screen
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
@@ -75,6 +77,8 @@ fun BottomSheetContent(
     onTransportModeChange: (TransportMode) -> Unit = {},
     routeInfo: RouteInfo? = null,
     remainingDistance: Double? = null,
+    isLoadingRoute: Boolean = false,
+    routeError: String? = null,
     joySpeedKmh: Float = 5f,
     onJoySpeedChange: (Float) -> Unit = {},
     totalDistanceTraveled: Double = 0.0,
@@ -155,6 +159,8 @@ fun BottomSheetContent(
                         onTransportModeChange = onTransportModeChange,
                         routeInfo = routeInfo,
                         remainingDistance = remainingDistance,
+                        isLoadingRoute = isLoadingRoute,
+                        routeError = routeError,
                         isSpoofing = isSpoofing,
                     )
                 SpoofMode.JOYSTICK ->
@@ -268,6 +274,8 @@ private fun DirectionsModePanel(
     onTransportModeChange: (TransportMode) -> Unit,
     routeInfo: RouteInfo?,
     remainingDistance: Double?,
+    isLoadingRoute: Boolean = false,
+    routeError: String? = null,
     isSpoofing: Boolean,
 ) {
     Column(Modifier.fillMaxWidth()) {
@@ -414,6 +422,44 @@ private fun DirectionsModePanel(
                             String.format(Locale.US, "%.0f km/h", currentSpeedKmh),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            }
+        }
+
+        if (isLoadingRoute) {
+            Spacer(Modifier.height(12.dp))
+            LinearProgressIndicator(
+                Modifier.fillMaxWidth().height(4.dp).clip(MaterialTheme.shapes.small),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            )
+        }
+
+        AnimatedVisibility(
+            visible = routeError != null,
+            enter = fadeIn(tween(200)) + slideInVertically(tween(250)) { it / 2 },
+            exit = fadeOut(tween(150)),
+        ) {
+            if (routeError != null) {
+                Spacer(Modifier.height(12.dp))
+                androidx.compose.material3.Card(
+                    Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    colors =
+                        androidx.compose.material3.CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                        ),
+                ) {
+                    Row(
+                        Modifier.padding(12.dp).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            routeError,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
                         )
                     }
                 }

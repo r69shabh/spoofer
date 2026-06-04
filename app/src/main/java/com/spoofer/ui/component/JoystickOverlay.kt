@@ -19,8 +19,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import kotlin.math.atan2
 import kotlin.math.sqrt
@@ -33,14 +35,17 @@ data class JoystickInput(
 @Composable
 fun JoystickOverlay(
     isActive: Boolean,
+    isPreview: Boolean = false,
     onInput: (JoystickInput) -> Unit,
     modifier: Modifier = Modifier,
     baseRadiusDp: Float = 56f,
     thumbRadiusDp: Float = 18f,
 ) {
-    if (!isActive) return
+    val show = isActive || isPreview
+    if (!show) return
 
     val density = LocalDensity.current
+    val haptic = LocalHapticFeedback.current
     val baseRadiusPx = with(density) { baseRadiusDp.dp.toPx() }
     val thumbRadiusPx = with(density) { thumbRadiusDp.dp.toPx() }
     val maxOffset = baseRadiusPx - thumbRadiusPx
@@ -48,6 +53,14 @@ fun JoystickOverlay(
     var thumbOffset by remember { mutableStateOf(Offset.Zero) }
 
     val totalSizeDp = (baseRadiusDp * 2).dp
+
+    val surfaceAlpha = if (isActive) 0.85f else 0.55f
+    val surfaceColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = surfaceAlpha)
+
+    val thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = if (isActive) 1f else 0.5f)
+    val thumbGlow = MaterialTheme.colorScheme.primary.copy(alpha = if (isActive) 0.3f else 0.1f)
+    val crosshairColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = if (isActive) 1f else 0.5f)
+    val thumbHighlightColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = if (isActive) 0.2f else 0.05f)
 
     Box(
         modifier = modifier.fillMaxSize(),
@@ -59,71 +72,73 @@ fun JoystickOverlay(
                     .offset(y = (-80).dp)
                     .size(totalSizeDp),
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.85f),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            shadowElevation = 8.dp,
+            color = surfaceColor,
+            border = BorderStroke(if (isActive) 1.dp else 0.5.dp, crosshairColor),
+            shadowElevation = if (isActive) 8.dp else 2.dp,
         ) {
             Box(
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        .pointerInput(Unit) {
-                            detectDragGestures(
-                                onDragStart = { },
-                                onDragEnd = {
-                                    thumbOffset = Offset.Zero
-                                    onInput(JoystickInput(angle = 0f, magnitude = 0f))
-                                },
-                                onDragCancel = {
-                                    thumbOffset = Offset.Zero
-                                    onInput(JoystickInput(angle = 0f, magnitude = 0f))
-                                },
-                            ) { change, _ ->
-                                val center = Offset(size.width / 2f, size.height / 2f)
-                                val rawOffset = change.position - center
-                                val distance = sqrt(rawOffset.x * rawOffset.x + rawOffset.y * rawOffset.y)
-                                val clampedOffset =
-                                    if (distance > maxOffset) {
-                                        Offset(
-                                            rawOffset.x / distance * maxOffset,
-                                            rawOffset.y / distance * maxOffset,
-                                        )
-                                    } else {
-                                        rawOffset
+                        .then(
+                            if (isActive) {
+                                Modifier.pointerInput(Unit) {
+                                    detectDragGestures(
+                                        onDragStart = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        },
+                                        onDragEnd = {
+                                            thumbOffset = Offset.Zero
+                                            onInput(JoystickInput(angle = 0f, magnitude = 0f))
+                                        },
+                                        onDragCancel = {
+                                            thumbOffset = Offset.Zero
+                                            onInput(JoystickInput(angle = 0f, magnitude = 0f))
+                                        },
+                                    ) { change, _ ->
+                                        val center = Offset(size.width / 2f, size.height / 2f)
+                                        val rawOffset = change.position - center
+                                        val distance = sqrt(rawOffset.x * rawOffset.x + rawOffset.y * rawOffset.y)
+                                        val clampedOffset =
+                                            if (distance > maxOffset) {
+                                                Offset(
+                                                    rawOffset.x / distance * maxOffset,
+                                                    rawOffset.y / distance * maxOffset,
+                                                )
+                                            } else {
+                                                rawOffset
+                                            }
+                                        thumbOffset = clampedOffset
+
+                                        val magnitude =
+                                            (
+                                                sqrt(
+                                                    clampedOffset.x * clampedOffset.x +
+                                                        clampedOffset.y * clampedOffset.y,
+                                                ) / maxOffset
+                                            ).coerceIn(0f, 1f)
+
+                                        val angleDegrees =
+                                            if (magnitude < 0.05f) {
+                                                0f
+                                            } else {
+                                                val rad = atan2(clampedOffset.x.toDouble(), -clampedOffset.y.toDouble())
+                                                Math.toDegrees(rad).toFloat().let { if (it < 0) it + 360f else it }
+                                            }
+
+                                        onInput(JoystickInput(angle = angleDegrees, magnitude = magnitude))
+                                        change.consume()
                                     }
-                                thumbOffset = clampedOffset
-
-                                val magnitude =
-                                    (
-                                        sqrt(
-                                            clampedOffset.x * clampedOffset.x +
-                                                clampedOffset.y * clampedOffset.y,
-                                        ) / maxOffset
-                                    ).coerceIn(0f, 1f)
-
-                                val angleDegrees =
-                                    if (magnitude < 0.05f) {
-                                        0f
-                                    } else {
-                                        val rad = atan2(clampedOffset.x.toDouble(), -clampedOffset.y.toDouble())
-                                        Math.toDegrees(rad).toFloat().let { if (it < 0) it + 360f else it }
-                                    }
-
-                                onInput(JoystickInput(angle = angleDegrees, magnitude = magnitude))
-                                change.consume()
+                                }
+                            } else {
+                                Modifier
                             }
-                        },
+                        ),
             ) {
-                val crosshairColor = MaterialTheme.colorScheme.outlineVariant
-                val thumbColor = MaterialTheme.colorScheme.primary
-                val thumbGlow = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                val thumbHighlightColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
-
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val center = Offset(size.width / 2f, size.height / 2f)
                     val thumbCenter = center + thumbOffset
 
-                    // Crosshair lines
                     val dashEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f), 0f)
                     drawLine(
                         color = crosshairColor,
@@ -140,21 +155,18 @@ fun JoystickOverlay(
                         pathEffect = dashEffect,
                     )
 
-                    // Thumb glow
                     drawCircle(
                         color = thumbGlow,
                         radius = thumbRadiusPx + 6.dp.toPx(),
                         center = thumbCenter,
                     )
 
-                    // Thumb
                     drawCircle(
                         color = thumbColor,
                         radius = thumbRadiusPx,
                         center = thumbCenter,
                     )
 
-                    // Thumb highlight
                     drawCircle(
                         color = thumbHighlightColor,
                         radius = thumbRadiusPx * 0.4f,

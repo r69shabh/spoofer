@@ -1,8 +1,10 @@
 package com.spoofer.ui.screen
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -179,7 +181,9 @@ fun HistoryScreen(
                     HistoryItem(
                         entry = entry,
                         onClick = { onSelectEntry(entry) },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateItem(),
                     )
                     androidx.compose.material3.HorizontalDivider(
                         modifier = Modifier.padding(start = 72.dp),

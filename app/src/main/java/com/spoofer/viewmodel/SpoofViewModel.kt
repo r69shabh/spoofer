@@ -38,7 +38,13 @@ class SpoofViewModel
         private val _routePreview = MutableStateFlow<List<LatLng>>(emptyList())
         val routePreview: StateFlow<List<LatLng>> = _routePreview.asStateFlow()
 
-        val remainingDistance: StateFlow<Double> = MockLocationService.remainingDistance
+        private val _isLoadingRoute = MutableStateFlow(false)
+    val isLoadingRoute: StateFlow<Boolean> = _isLoadingRoute.asStateFlow()
+
+    private val _routeError = MutableStateFlow<String?>(null)
+    val routeError: StateFlow<String?> = _routeError.asStateFlow()
+
+    val remainingDistance: StateFlow<Double> = MockLocationService.remainingDistance
 
         fun startStaticSpoof(target: LatLng) {
             val intent =
@@ -80,13 +86,18 @@ class SpoofViewModel
             destination: LatLng,
         ) {
             viewModelScope.launch {
+                _isLoadingRoute.value = true
                 try {
                     val route = directionsRepo.getRoute(origin, destination)
                     _routeInfo.value = route
                     _routePreview.value = route.polyline
+                    _routeError.value = null
                 } catch (_: Exception) {
                     _routeInfo.value = null
                     _routePreview.value = emptyList()
+                    _routeError.value = "Could not find a route. Check your locations."
+                } finally {
+                    _isLoadingRoute.value = false
                 }
             }
         }
