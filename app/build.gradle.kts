@@ -21,11 +21,9 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         val mapsApiKey = providers.gradleProperty("MAPS_API_KEY").orElse("").get()
-        val orsApiKey = providers.gradleProperty("ORS_API_KEY").orElse("").get()
 
         resValue("string", "maps_api_key", mapsApiKey)
         buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
-        buildConfigField("String", "ORS_API_KEY", "\"$orsApiKey\"")
     }
 
     signingConfigs {
