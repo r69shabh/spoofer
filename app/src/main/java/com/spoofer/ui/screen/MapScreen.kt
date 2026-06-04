@@ -146,7 +146,14 @@ fun MapScreen(
         }
     }
 
-    LaunchedEffect(targetLatLng) { targetLatLng?.let { targetMarkerState.position = it } }
+    LaunchedEffect(targetLatLng) { 
+        targetLatLng?.let { 
+            targetMarkerState.position = it
+            if (isSpoofing && selectedMode == SpoofMode.STATIC) {
+                spoofViewModel.startStaticSpoof(it)
+            }
+        } 
+    }
     LaunchedEffect(originLatLng) { originLatLng?.let { originMarkerState.position = it } }
     LaunchedEffect(Unit) {
         mapViewModel.loadInitialLocation()
