@@ -60,7 +60,6 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
-import com.spoofer.model.SpeedMode
 import com.spoofer.model.SpoofMode
 import com.spoofer.ui.component.JoystickOverlay
 import com.spoofer.ui.component.LocationSearchBar
@@ -118,7 +117,8 @@ fun MapScreen(
 
     val infiniteTransition = rememberInfiniteTransition(label = "spoof_pulse")
     val pulseRadius by infiniteTransition.animateFloat(
-        initialValue = 12f, targetValue = 18f,
+        initialValue = 12f,
+        targetValue = 18f,
         animationSpec = infiniteRepeatable(animation = tween(1000), repeatMode = RepeatMode.Reverse),
         label = "pulse_radius",
     )
@@ -126,24 +126,32 @@ fun MapScreen(
     val isJoystickActive = isSpoofing && spoofMode == SpoofMode.JOYSTICK
 
     val onStartStop: () -> Unit = {
-        if (isSpoofing) spoofViewModel.stopSpoofing()
-        else when (selectedMode) {
-            SpoofMode.STATIC -> targetLatLng?.let { spoofViewModel.startStaticSpoof(it) }
-            SpoofMode.DIRECTIONS -> {
-                val origin = originLatLng ?: cameraPosition
-                val dest = targetLatLng
-                if (origin != null && dest != null)
-                    spoofViewModel.startDirectionsSpoof(origin, dest, speedKmh / 3.6f)
-            }
-            SpoofMode.JOYSTICK -> originLatLng?.let { origin ->
-                spoofViewModel.startJoystick(origin, joySpeedKmh / 3.6f)
+        if (isSpoofing) {
+            spoofViewModel.stopSpoofing()
+        } else {
+            when (selectedMode) {
+                SpoofMode.STATIC -> targetLatLng?.let { spoofViewModel.startStaticSpoof(it) }
+                SpoofMode.DIRECTIONS -> {
+                    val origin = originLatLng ?: cameraPosition
+                    val dest = targetLatLng
+                    if (origin != null && dest != null) {
+                        spoofViewModel.startDirectionsSpoof(origin, dest, speedKmh / 3.6f)
+                    }
+                }
+                SpoofMode.JOYSTICK ->
+                    originLatLng?.let { origin ->
+                        spoofViewModel.startJoystick(origin, joySpeedKmh / 3.6f)
+                    }
             }
         }
     }
 
     LaunchedEffect(targetLatLng) { targetLatLng?.let { targetMarkerState.position = it } }
     LaunchedEffect(originLatLng) { originLatLng?.let { originMarkerState.position = it } }
-    LaunchedEffect(Unit) { mapViewModel.loadInitialLocation(); spoofViewModel.checkMockLocationProvider() }
+    LaunchedEffect(Unit) {
+        mapViewModel.loadInitialLocation()
+        spoofViewModel.checkMockLocationProvider()
+    }
     LaunchedEffect(cameraPosition) { cameraPosition?.let { cameraState.move(CameraUpdateFactory.newLatLngZoom(it, 16f)) } }
 
     LaunchedEffect(selectedMode, originLatLng, targetLatLng) {
@@ -155,8 +163,9 @@ fun MapScreen(
     }
 
     LaunchedEffect(isJoystickActive, currentSpoofedLocation) {
-        if (isJoystickActive && currentSpoofedLocation != null)
+        if (isJoystickActive && currentSpoofedLocation != null) {
             cameraState.animate(CameraUpdateFactory.newLatLng(currentSpoofedLocation!!))
+        }
     }
     LaunchedEffect(isJoystickActive, joySpeedKmh) {
         if (isJoystickActive) spoofViewModel.updateJoystickSpeed(joySpeedKmh / 3.6f)
@@ -168,9 +177,10 @@ fun MapScreen(
         }
     }
 
-    val fineLocationGranted = ContextCompat.checkSelfPermission(
-        context, Manifest.permission.ACCESS_FINE_LOCATION
-    ) == PackageManager.PERMISSION_GRANTED
+    val fineLocationGranted =
+        ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
 
     val isDarkMap = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
@@ -214,18 +224,25 @@ fun MapScreen(
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraState,
-                properties = MapProperties(
-                    isMyLocationEnabled = fineLocationGranted && !isSpoofing,
-                    mapStyleOptions = if (isDarkMap) MapStyleOptions.loadRawResourceStyle(
-                        context,
-                        com.spoofer.R.raw.map_style_dark,
-                    ) else null,
-                ),
-                uiSettings = MapUiSettings(
-                    zoomControlsEnabled = false,
-                    myLocationButtonEnabled = false,
-                    mapToolbarEnabled = false,
-                ),
+                properties =
+                    MapProperties(
+                        isMyLocationEnabled = fineLocationGranted && !isSpoofing,
+                        mapStyleOptions =
+                            if (isDarkMap) {
+                                MapStyleOptions.loadRawResourceStyle(
+                                    context,
+                                    com.spoofer.R.raw.map_style_dark,
+                                )
+                            } else {
+                                null
+                            },
+                    ),
+                uiSettings =
+                    MapUiSettings(
+                        zoomControlsEnabled = false,
+                        myLocationButtonEnabled = false,
+                        mapToolbarEnabled = false,
+                    ),
                 onMapClick = { latLng ->
                     if (selectedMode == SpoofMode.DIRECTIONS && targetLatLng != null) {
                         mapViewModel.setOrigin(latLng)
@@ -238,12 +255,15 @@ fun MapScreen(
             ) {
                 originLatLng?.let {
                     Marker(
-                        state = originMarkerState, title = "Origin",
+                        state = originMarkerState,
+                        title = "Origin",
                         icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN),
                     )
                 }
                 Marker(
-                    state = targetMarkerState, title = "Destination", draggable = true,
+                    state = targetMarkerState,
+                    title = "Destination",
+                    draggable = true,
                     icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED),
                 )
 
@@ -256,7 +276,8 @@ fun MapScreen(
                 }
                 currentSpoofedLocation?.let { loc ->
                     Circle(
-                        center = loc, radius = pulseRadius.toDouble(),
+                        center = loc,
+                        radius = pulseRadius.toDouble(),
                         fillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                         strokeColor = MaterialTheme.colorScheme.primary,
                         strokeWidth = 2f,
@@ -301,37 +322,45 @@ fun MapScreen(
                     val current = cameraState.position.target
                     cameraState.move(CameraUpdateFactory.newLatLngZoom(current, 17f))
                 },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 96.dp),
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 16.dp, bottom = 96.dp),
                 shape = androidx.compose.foundation.shape.CircleShape,
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                 contentColor = MaterialTheme.colorScheme.primary,
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 4.dp,
-                )
+                elevation =
+                    FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 4.dp,
+                    ),
             ) {
                 Icon(Icons.Default.MyLocation, contentDescription = "My Location", modifier = Modifier.size(24.dp))
             }
 
             ExtendedFloatingActionButton(
                 onClick = onStartStop,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 80.dp),
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 80.dp),
                 shape = androidx.compose.foundation.shape.CircleShape,
-                containerColor = if (isSpoofing)
-                    MaterialTheme.colorScheme.error
-                else
-                    MaterialTheme.colorScheme.primary,
-                contentColor = if (isSpoofing)
-                    MaterialTheme.colorScheme.onError
-                else
-                    MaterialTheme.colorScheme.onPrimary,
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 4.dp,
-                    pressedElevation = 8.dp,
-                ),
+                containerColor =
+                    if (isSpoofing) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    },
+                contentColor =
+                    if (isSpoofing) {
+                        MaterialTheme.colorScheme.onError
+                    } else {
+                        MaterialTheme.colorScheme.onPrimary
+                    },
+                elevation =
+                    FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 4.dp,
+                        pressedElevation = 8.dp,
+                    ),
             ) {
                 Icon(
                     if (isSpoofing) Icons.Default.Stop else Icons.Default.PlayArrow,
@@ -347,44 +376,58 @@ fun MapScreen(
         }
     }
 
-    if (showFavoritesSheet) FavoritesSheet(
-        favorites = favorites,
-        onSelect = { location ->
-            val ll = LatLng(location.latitude, location.longitude)
-            mapViewModel.setTarget(ll)
-            targetMarkerState.position = ll
-            cameraState.move(CameraUpdateFactory.newLatLngZoom(ll, 16f))
-            showFavoritesSheet = false
-        },
-        onDelete = { favoriteViewModel.delete(it) },
-        onDismiss = { showFavoritesSheet = false },
-        sheetState = favoritesSheetState,
-    )
+    if (showFavoritesSheet) {
+        FavoritesSheet(
+            favorites = favorites,
+            onSelect = { location ->
+                val ll = LatLng(location.latitude, location.longitude)
+                mapViewModel.setTarget(ll)
+                targetMarkerState.position = ll
+                cameraState.move(CameraUpdateFactory.newLatLngZoom(ll, 16f))
+                showFavoritesSheet = false
+            },
+            onDelete = { favoriteViewModel.delete(it) },
+            onDismiss = { showFavoritesSheet = false },
+            sheetState = favoritesSheetState,
+        )
+    }
 
-    if (showSaveDialog && targetLatLng != null) AlertDialog(
-        onDismissRequest = { showSaveDialog = false; saveDialogName = "" },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        title = { Text("Save Location") },
-        text = {
-            OutlinedTextField(
-                value = saveDialogName, onValueChange = { saveDialogName = it },
-                label = { Text("Name") }, placeholder = { Text("e.g. Home, Work, Park") },
-                singleLine = true, modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                if (saveDialogName.isNotBlank()) {
-                    favoriteViewModel.save(saveDialogName.trim(), targetLatLng!!.latitude, targetLatLng!!.longitude)
-                    showSaveDialog = false; saveDialogName = ""
-                }
-            }) { Text("Save") }
-        },
-        dismissButton = {
-            TextButton(onClick = { showSaveDialog = false; saveDialogName = "" }) { Text("Cancel") }
-        },
-    )
+    if (showSaveDialog && targetLatLng != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showSaveDialog = false
+                saveDialogName = ""
+            },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            title = { Text("Save Location") },
+            text = {
+                OutlinedTextField(
+                    value = saveDialogName,
+                    onValueChange = { saveDialogName = it },
+                    label = { Text("Name") },
+                    placeholder = { Text("e.g. Home, Work, Park") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (saveDialogName.isNotBlank()) {
+                        favoriteViewModel.save(saveDialogName.trim(), targetLatLng!!.latitude, targetLatLng!!.longitude)
+                        showSaveDialog = false
+                        saveDialogName = ""
+                    }
+                }) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showSaveDialog = false
+                    saveDialogName = ""
+                }) { Text("Cancel") }
+            },
+        )
+    }
 
     if (showSetupDialog) MockLocationSetupDialog(onDismiss = { spoofViewModel.dismissSetupDialog() })
 }

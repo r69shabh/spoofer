@@ -29,15 +29,12 @@ import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -48,11 +45,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.LatLng
-import com.spoofer.ui.component.LocationInputField
 import com.spoofer.data.RouteInfo
 import com.spoofer.model.SpeedMode
 import com.spoofer.model.SpoofMode
 import com.spoofer.model.TransportMode
+import com.spoofer.ui.component.LocationInputField
 import com.spoofer.ui.component.SpeedSlider
 import java.util.Locale
 
@@ -86,19 +83,21 @@ fun BottomSheetContent(
     onDestSelected: (LatLng) -> Unit = {},
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(top = 8.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(top = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // Drag Handle
         Box(
-            modifier = Modifier
-                .width(32.dp)
-                .height(4.dp)
-                .clip(androidx.compose.foundation.shape.CircleShape)
-                .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
+            modifier =
+                Modifier
+                    .width(32.dp)
+                    .height(4.dp)
+                    .clip(androidx.compose.foundation.shape.CircleShape)
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)),
         )
         Spacer(Modifier.height(16.dp))
 
@@ -137,29 +136,35 @@ fun BottomSheetContent(
         ) { mode ->
             when (mode) {
                 SpoofMode.STATIC -> StaticModePanel(targetLatLng, onSaveFavorite)
-                SpoofMode.DIRECTIONS -> DirectionsModePanel(
-                    originText = originText,
-                    destText = destText,
-                    onOriginTextChange = onOriginTextChange,
-                    onDestTextChange = onDestTextChange,
-                    onOriginSelected = onOriginSelected,
-                    onDestSelected = onDestSelected,
-                    onSearchPlace = onSearchPlace,
-                    onSwap = onSwap,
-                    speedKmh = speedKmh,
-                    onSpeedChange = onSpeedChange,
-                    speedMode = speedMode,
-                    onSpeedModeChange = onSpeedModeChange,
-                    currentSpeedKmh = currentSpeedKmh,
-                    transportMode = transportMode,
-                    onTransportModeChange = onTransportModeChange,
-                    routeInfo = routeInfo,
-                    remainingDistance = remainingDistance,
-                    isSpoofing = isSpoofing,
-                )
-                SpoofMode.JOYSTICK -> JoystickPanel(
-                    joySpeedKmh, onJoySpeedChange, totalDistanceTraveled, currentHeading, isSpoofing
-                )
+                SpoofMode.DIRECTIONS ->
+                    DirectionsModePanel(
+                        originText = originText,
+                        destText = destText,
+                        onOriginTextChange = onOriginTextChange,
+                        onDestTextChange = onDestTextChange,
+                        onOriginSelected = onOriginSelected,
+                        onDestSelected = onDestSelected,
+                        onSearchPlace = onSearchPlace,
+                        onSwap = onSwap,
+                        speedKmh = speedKmh,
+                        onSpeedChange = onSpeedChange,
+                        speedMode = speedMode,
+                        onSpeedModeChange = onSpeedModeChange,
+                        currentSpeedKmh = currentSpeedKmh,
+                        transportMode = transportMode,
+                        onTransportModeChange = onTransportModeChange,
+                        routeInfo = routeInfo,
+                        remainingDistance = remainingDistance,
+                        isSpoofing = isSpoofing,
+                    )
+                SpoofMode.JOYSTICK ->
+                    JoystickPanel(
+                        joySpeedKmh,
+                        onJoySpeedChange,
+                        totalDistanceTraveled,
+                        currentHeading,
+                        isSpoofing,
+                    )
             }
         }
 
@@ -170,21 +175,26 @@ fun BottomSheetContent(
 }
 
 @Composable
-private fun StaticModePanel(targetLatLng: LatLng?, onSaveFavorite: () -> Unit) {
+private fun StaticModePanel(
+    targetLatLng: LatLng?,
+    onSaveFavorite: () -> Unit,
+) {
     if (targetLatLng == null) {
         androidx.compose.material3.Card(
             Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.medium,
-            colors = androidx.compose.material3.CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            )
+            colors =
+                androidx.compose.material3.CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                ),
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    Icons.Default.TouchApp, null,
+                    Icons.Default.TouchApp,
+                    null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(24.dp),
                 )
@@ -200,9 +210,10 @@ private fun StaticModePanel(targetLatLng: LatLng?, onSaveFavorite: () -> Unit) {
         androidx.compose.material3.Card(
             Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.medium,
-            colors = androidx.compose.material3.CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            )
+            colors =
+                androidx.compose.material3.CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                ),
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -227,7 +238,8 @@ private fun StaticModePanel(targetLatLng: LatLng?, onSaveFavorite: () -> Unit) {
                     label = { Text("Save to Favorites") },
                     leadingIcon = {
                         Icon(
-                            Icons.Default.StarBorder, null,
+                            Icons.Default.StarBorder,
+                            null,
                             Modifier.size(AssistChipDefaults.IconSize),
                         )
                     },
@@ -262,9 +274,10 @@ private fun DirectionsModePanel(
         androidx.compose.material3.Card(
             Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.medium,
-            colors = androidx.compose.material3.CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            )
+            colors =
+                androidx.compose.material3.CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                ),
         ) {
             Column {
                 LocationInputField(
@@ -275,23 +288,25 @@ private fun DirectionsModePanel(
                     onSearch = onSearchPlace,
                     leadingIcon = {
                         Icon(
-                            Icons.Default.LocationOn, null,
+                            Icons.Default.LocationOn,
+                            null,
                             tint = MaterialTheme.colorScheme.tertiary,
                             modifier = Modifier.size(20.dp),
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = androidx.compose.material3.TextFieldDefaults.colors(
-                        focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-                        unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-                        focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
-                        unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
-                    )
+                    colors =
+                        androidx.compose.material3.TextFieldDefaults.colors(
+                            focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                            unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                            focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                            unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                        ),
                 )
 
                 androidx.compose.material3.HorizontalDivider(
                     modifier = Modifier.padding(start = 52.dp, end = 16.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant
+                    color = MaterialTheme.colorScheme.outlineVariant,
                 )
 
                 LocationInputField(
@@ -302,7 +317,8 @@ private fun DirectionsModePanel(
                     onSearch = onSearchPlace,
                     leadingIcon = {
                         Icon(
-                            Icons.Default.LocationOn, null,
+                            Icons.Default.LocationOn,
+                            null,
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(20.dp),
                         )
@@ -313,12 +329,13 @@ private fun DirectionsModePanel(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = androidx.compose.material3.TextFieldDefaults.colors(
-                        focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-                        unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-                        focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
-                        unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
-                    )
+                    colors =
+                        androidx.compose.material3.TextFieldDefaults.colors(
+                            focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                            unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                            focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                            unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                        ),
                 )
             }
         }
@@ -337,10 +354,11 @@ private fun DirectionsModePanel(
                     selected = transportMode == mode,
                     onClick = { onTransportModeChange(mode) },
                     label = { Text(mode.label, style = MaterialTheme.typography.labelMedium) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    ),
+                    colors =
+                        FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
                 )
             }
         }
@@ -352,19 +370,21 @@ private fun DirectionsModePanel(
                 selected = speedMode == SpeedMode.MANUAL,
                 onClick = { onSpeedModeChange(SpeedMode.MANUAL) },
                 label = { Text("Manual", style = MaterialTheme.typography.labelMedium) },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                ),
+                colors =
+                    FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
             )
             FilterChip(
                 selected = speedMode == SpeedMode.CURRENT,
                 onClick = { onSpeedModeChange(SpeedMode.CURRENT) },
                 label = { Text("Current Speed", style = MaterialTheme.typography.labelMedium) },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                ),
+                colors =
+                    FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
             )
         }
 
@@ -376,9 +396,10 @@ private fun DirectionsModePanel(
                 androidx.compose.material3.Card(
                     Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium,
-                    colors = androidx.compose.material3.CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    )
+                    colors =
+                        androidx.compose.material3.CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        ),
                 ) {
                     Row(
                         Modifier.padding(12.dp).fillMaxWidth(),
@@ -404,9 +425,10 @@ private fun DirectionsModePanel(
             androidx.compose.material3.Card(
                 Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
-                colors = androidx.compose.material3.CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                )
+                colors =
+                    androidx.compose.material3.CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    ),
             ) {
                 Row(
                     Modifier.padding(12.dp).fillMaxWidth(),
@@ -426,9 +448,12 @@ private fun DirectionsModePanel(
         }
 
         if (isSpoofing && remainingDistance != null && routeInfo != null) {
-            val progress = if (routeInfo.distanceMeters > 0)
-                ((routeInfo.distanceMeters - remainingDistance) / routeInfo.distanceMeters).toFloat().coerceIn(0f, 1f)
-            else 0f
+            val progress =
+                if (routeInfo.distanceMeters > 0) {
+                    ((routeInfo.distanceMeters - remainingDistance) / routeInfo.distanceMeters).toFloat().coerceIn(0f, 1f)
+                } else {
+                    0f
+                }
 
             Spacer(Modifier.height(12.dp))
 
@@ -447,11 +472,14 @@ private fun DirectionsModePanel(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                val etaSeconds = if (speedMode == SpeedMode.CURRENT && currentSpeedKmh > 0)
-                    (remainingDistance / (currentSpeedKmh / 3.6)).toInt()
-                else if (speedKmh > 0)
-                    (remainingDistance / (speedKmh / 3.6)).toInt()
-                else 0
+                val etaSeconds =
+                    if (speedMode == SpeedMode.CURRENT && currentSpeedKmh > 0) {
+                        (remainingDistance / (currentSpeedKmh / 3.6)).toInt()
+                    } else if (speedKmh > 0) {
+                        (remainingDistance / (speedKmh / 3.6)).toInt()
+                    } else {
+                        0
+                    }
                 Text(
                     "ETA: ${formatDuration(etaSeconds)}",
                     style = MaterialTheme.typography.bodySmall,
@@ -496,14 +524,16 @@ private fun JoystickPanel(
     }
 }
 
-private fun formatDms(lat: Double, lng: Double): String {
+private fun formatDms(
+    lat: Double,
+    lng: Double,
+): String {
     val latDir = if (lat >= 0) "N" else "S"
     val lngDir = if (lng >= 0) "E" else "W"
     return String.format("%.4f\u00B0 %s, %.4f\u00B0 %s", Math.abs(lat), latDir, Math.abs(lng), lngDir)
 }
 
-private fun formatDistance(meters: Double): String =
-    if (meters >= 1000) "%.1f km".format(meters / 1000) else "%.0f m".format(meters)
+private fun formatDistance(meters: Double): String = if (meters >= 1000) "%.1f km".format(meters / 1000) else "%.0f m".format(meters)
 
 private fun formatDuration(seconds: Int): String {
     val h = seconds / 3600

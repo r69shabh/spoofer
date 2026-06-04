@@ -1,9 +1,7 @@
 package com.spoofer.ui.component
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +17,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.LatLng
 import com.spoofer.data.PlaceSuggestion
 import kotlinx.coroutines.Job
@@ -36,12 +33,13 @@ fun LocationInputField(
     modifier: Modifier = Modifier,
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
-    colors: TextFieldColors = TextFieldDefaults.colors(
-        focusedIndicatorColor = Color.Transparent,
-        unfocusedIndicatorColor = Color.Transparent,
-        focusedContainerColor = Color.Transparent,
-        unfocusedContainerColor = Color.Transparent,
-    )
+    colors: TextFieldColors =
+        TextFieldDefaults.colors(
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+        ),
 ) {
     val scope = rememberCoroutineScope()
     var suggestions by remember { mutableStateOf<List<PlaceSuggestion>>(emptyList()) }
@@ -55,16 +53,17 @@ fun LocationInputField(
                 onValueChange(newValue)
                 searchJob?.cancel()
                 if (newValue.length >= 2) {
-                    searchJob = scope.launch {
-                        delay(300)
-                        try {
-                            suggestions = onSearch(newValue)
-                            expanded = suggestions.isNotEmpty()
-                        } catch (_: Exception) {
-                            suggestions = emptyList()
-                            expanded = false
+                    searchJob =
+                        scope.launch {
+                            delay(300)
+                            try {
+                                suggestions = onSearch(newValue)
+                                expanded = suggestions.isNotEmpty()
+                            } catch (_: Exception) {
+                                suggestions = emptyList()
+                                expanded = false
+                            }
                         }
-                    }
                 } else {
                     suggestions = emptyList()
                     expanded = false

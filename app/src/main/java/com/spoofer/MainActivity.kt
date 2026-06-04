@@ -23,7 +23,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
     @Inject
     lateinit var prefsDataStore: PreferencesDataStore
 
@@ -52,13 +51,15 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 private fun RequestPermissions() {
-    val permissionsState = rememberMultiplePermissionsState(
-        permissions = listOf(
-            android.Manifest.permission.ACCESS_FINE_LOCATION,
-            android.Manifest.permission.ACCESS_COARSE_LOCATION,
-            android.Manifest.permission.POST_NOTIFICATIONS,
+    val permissionsState =
+        rememberMultiplePermissionsState(
+            permissions =
+                listOf(
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                    android.Manifest.permission.POST_NOTIFICATIONS,
+                ),
         )
-    )
 
     LaunchedEffect(Unit) {
         permissionsState.launchMultiplePermissionRequest()

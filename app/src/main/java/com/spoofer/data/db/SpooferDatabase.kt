@@ -9,5 +9,6 @@ import androidx.room.RoomDatabase
 )
 abstract class SpooferDatabase : RoomDatabase() {
     abstract fun savedLocationDao(): SavedLocationDao
+
     abstract fun spoofHistoryDao(): SpoofHistoryDao
 }

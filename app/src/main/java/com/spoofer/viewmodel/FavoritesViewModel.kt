@@ -13,24 +13,30 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class FavoritesViewModel @Inject constructor(
-    private val favoritesRepo: FavoritesRepository,
-) : ViewModel() {
-    val favorites: StateFlow<List<SavedLocationEntity>> = favoritesRepo.getAll()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+class FavoritesViewModel
+    @Inject
+    constructor(
+        private val favoritesRepo: FavoritesRepository,
+    ) : ViewModel() {
+        val favorites: StateFlow<List<SavedLocationEntity>> =
+            favoritesRepo.getAll()
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun save(name: String, lat: Double, lng: Double) {
-        viewModelScope.launch {
-            favoritesRepo.save(name, lat, lng)
+        fun save(
+            name: String,
+            lat: Double,
+            lng: Double,
+        ) {
+            viewModelScope.launch {
+                favoritesRepo.save(name, lat, lng)
+            }
         }
-    }
 
-    fun delete(location: SavedLocationEntity) {
-        viewModelScope.launch {
-            favoritesRepo.delete(location)
+        fun delete(location: SavedLocationEntity) {
+            viewModelScope.launch {
+                favoritesRepo.delete(location)
+            }
         }
-    }
 
-    fun select(location: SavedLocationEntity): LatLng =
-        LatLng(location.latitude, location.longitude)
-}
+        fun select(location: SavedLocationEntity): LatLng = LatLng(location.latitude, location.longitude)
+    }

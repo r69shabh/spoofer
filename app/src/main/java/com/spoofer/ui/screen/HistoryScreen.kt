@@ -3,6 +3,8 @@ package com.spoofer.ui.screen
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -26,11 +27,9 @@ import androidx.compose.material.icons.filled.Gamepad
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -48,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,9 +57,6 @@ import com.spoofer.viewmodel.HistoryViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.background
-import androidx.compose.ui.draw.clip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,9 +93,10 @@ fun HistoryScreen(
         },
     ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -112,10 +110,11 @@ fun HistoryScreen(
                             selected = currentFilter == null,
                             onClick = { viewModel.setFilter(null) },
                             label = { Text("All") },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            ),
+                            colors =
+                                FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                ),
                         )
                     }
                     SpoofMode.entries.forEach { mode ->
@@ -129,13 +128,14 @@ fun HistoryScreen(
                                             SpoofMode.STATIC -> "Static"
                                             SpoofMode.DIRECTIONS -> "Directions"
                                             SpoofMode.JOYSTICK -> "Joystick"
-                                        }
+                                        },
                                     )
                                 },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                ),
+                                colors =
+                                    FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    ),
                             )
                         }
                     }
@@ -146,9 +146,10 @@ fun HistoryScreen(
             if (entries.isEmpty()) {
                 item {
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 48.dp),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 48.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -182,7 +183,7 @@ fun HistoryScreen(
                     )
                     androidx.compose.material3.HorizontalDivider(
                         modifier = Modifier.padding(start = 72.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant
+                        color = MaterialTheme.colorScheme.outlineVariant,
                     )
                 }
 
@@ -220,22 +221,28 @@ private fun HistoryItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val modeIcon = when (entry.mode) {
-        "STATIC" -> Icons.Default.LocationOn
-        "DIRECTIONS" -> Icons.Default.DirectionsWalk
-        "JOYSTICK" -> Icons.Default.Gamepad
-        else -> Icons.Default.LocationOn
-    }
+    val modeIcon =
+        when (entry.mode) {
+            "STATIC" -> Icons.Default.LocationOn
+            "DIRECTIONS" -> Icons.Default.DirectionsWalk
+            "JOYSTICK" -> Icons.Default.Gamepad
+            else -> Icons.Default.LocationOn
+        }
     val dateFormat = remember { SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()) }
-    val duration = entry.endTime?.let { end ->
-        val seconds = (end - entry.startTime) / 1000
-        if (seconds >= 3600) "${seconds / 3600}h ${(seconds % 3600) / 60}min"
-        else "${seconds / 60} min"
-    } ?: "In progress"
+    val duration =
+        entry.endTime?.let { end ->
+            val seconds = (end - entry.startTime) / 1000
+            if (seconds >= 3600) {
+                "${seconds / 3600}h ${(seconds % 3600) / 60}min"
+            } else {
+                "${seconds / 60} min"
+            }
+        } ?: "In progress"
 
     val modeLabel = entry.mode.lowercase().replaceFirstChar { it.uppercase() }
-    val coordText = entry.destinationName
-        ?: "%.4f, %.4f".format(entry.targetLatitude, entry.targetLongitude)
+    val coordText =
+        entry.destinationName
+            ?: "%.4f, %.4f".format(entry.targetLatitude, entry.targetLongitude)
 
     ListItem(
         modifier = modifier.clickable(onClick = onClick),
@@ -262,17 +269,18 @@ private fun HistoryItem(
         },
         leadingContent = {
             Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(androidx.compose.foundation.shape.CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(40.dp)
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     modeIcon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
                 )
             }
         },
@@ -285,8 +293,9 @@ private fun HistoryItem(
                 )
             }
         },
-        colors = ListItemDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.background,
-        ),
+        colors =
+            ListItemDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.background,
+            ),
     )
 }

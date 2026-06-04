@@ -48,8 +48,12 @@ fun FavoritesSheet(
     sheetState: SheetState,
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    val filtered = if (searchQuery.isBlank()) favorites
-        else favorites.filter { it.name.contains(searchQuery, ignoreCase = true) }
+    val filtered =
+        if (searchQuery.isBlank()) {
+            favorites
+        } else {
+            favorites.filter { it.name.contains(searchQuery, ignoreCase = true) }
+        }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -81,9 +85,10 @@ fun FavoritesSheet(
 
             if (filtered.isEmpty()) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 48.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 48.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -95,8 +100,12 @@ fun FavoritesSheet(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = if (favorites.isEmpty()) "No saved locations yet"
-                                else "No matches",
+                            text =
+                                if (favorites.isEmpty()) {
+                                    "No saved locations yet"
+                                } else {
+                                    "No matches"
+                                },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -105,9 +114,10 @@ fun FavoritesSheet(
             }
 
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f, fill = false),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false),
             ) {
                 items(
                     items = filtered,
@@ -139,9 +149,10 @@ fun FavoritesSheet(
                             }
                         },
                         modifier = Modifier.fillMaxWidth().clickable { onSelect(item) },
-                        colors = ListItemDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                        ),
+                        colors =
+                            ListItemDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                            ),
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }

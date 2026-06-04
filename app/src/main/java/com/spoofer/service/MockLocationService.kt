@@ -31,11 +31,14 @@ import kotlin.random.Random
 
 @AndroidEntryPoint
 class MockLocationService : Service() {
-
     @Inject lateinit var mockLocationProvider: MockLocationProvider
+
     @Inject lateinit var staticSpoofUseCase: StaticSpoofUseCase
+
     @Inject lateinit var speedSimulationUseCase: SpeedSimulationUseCase
+
     @Inject lateinit var historyRepo: HistoryRepository
+
     @Inject lateinit var spoofLocationSource: com.spoofer.location.SpoofLocationSource
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -61,7 +64,11 @@ class MockLocationService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int,
+    ): Int {
         when (intent?.action) {
             ACTION_SET_STATIC -> {
                 spoofMode = SpoofMode.STATIC
@@ -127,73 +134,79 @@ class MockLocationService : Service() {
         }
 
         tickerJob?.cancel()
-        tickerJob = scope.launch {
-            logHistoryStart()
-            val startRealTime = android.os.SystemClock.elapsedRealtime()
-            while (true) {
-                _elapsedSeconds.value = (android.os.SystemClock.elapsedRealtime() - startRealTime) / 1000L
+        tickerJob =
+            scope.launch {
+                logHistoryStart()
+                val startRealTime = android.os.SystemClock.elapsedRealtime()
+                while (true) {
+                    _elapsedSeconds.value = (android.os.SystemClock.elapsedRealtime() - startRealTime) / 1000L
 
-                when (spoofMode) {
-                    SpoofMode.STATIC -> {
-                        val jittered = staticSpoofUseCase.getJitteredLocation(
-                            com.google.android.gms.maps.model.LatLng(staticLat, staticLng),
-                            jitterEnabled = false,
-                        )
-                        mockLocationProvider.setMockLocation(jittered.latitude, jittered.longitude)
-                        spoofLocationSource.pushSpoofedLocation(jittered.latitude, jittered.longitude)
-                        _currentLocation.value = jittered
-                    }
-                    SpoofMode.JOYSTICK -> {
-                        val radians = Math.toRadians(joyAngle.toDouble())
-                        val joyMetersPerTick = (joySpeed * (TICK_INTERVAL_MS / 1000f)).toDouble()
-                        val deltaLat = joyMagnitude * joyMetersPerTick * Math.cos(radians) * METERS_PER_DEGREE_LAT
-                        val deltaLng = joyMagnitude * joyMetersPerTick * Math.sin(radians) * Math.cos(
-                            Math.toRadians(staticLat)
-                        ) * METERS_PER_DEGREE_LAT
-                        staticLat += deltaLat
-                        staticLng += deltaLng
-                        val distanceThisTick = joyMagnitude * joyMetersPerTick
-                        _totalDistanceTraveled.value += distanceThisTick
-                        _currentHeading.value = joyAngle
-                        mockLocationProvider.setMockLocation(
-                            staticLat, staticLng,
-                            bearing = joyAngle,
-                            speed = joySpeed,
-                        )
-                        spoofLocationSource.pushSpoofedLocation(staticLat, staticLng, joyAngle, joySpeed)
-                        _currentLocation.value = LatLng(staticLat, staticLng)
-                    }
-                    SpoofMode.DIRECTIONS -> {
-                        val speedVariation = speedMps * (1f + (kotlin.random.Random.nextFloat() - 0.5f) * 0.1f)
-                        val metersPerTick = speedVariation * (TICK_INTERVAL_MS / 1000f)
-                        val result = speedSimulationUseCase.tick(metersPerTick)
-                        if (result != null) {
-                            val jitterLat = result.position.latitude +
-                                (Random.nextDouble() - 0.5) * 0.000018
-                            val jitterLng = result.position.longitude +
-                                (Random.nextDouble() - 0.5) * 0.000018
+                    when (spoofMode) {
+                        SpoofMode.STATIC -> {
+                            val jittered =
+                                staticSpoofUseCase.getJitteredLocation(
+                                    com.google.android.gms.maps.model.LatLng(staticLat, staticLng),
+                                    jitterEnabled = false,
+                                )
+                            mockLocationProvider.setMockLocation(jittered.latitude, jittered.longitude)
+                            spoofLocationSource.pushSpoofedLocation(jittered.latitude, jittered.longitude)
+                            _currentLocation.value = jittered
+                        }
+                        SpoofMode.JOYSTICK -> {
+                            val radians = Math.toRadians(joyAngle.toDouble())
+                            val joyMetersPerTick = (joySpeed * (TICK_INTERVAL_MS / 1000f)).toDouble()
+                            val deltaLat = joyMagnitude * joyMetersPerTick * Math.cos(radians) * METERS_PER_DEGREE_LAT
+                            val deltaLng =
+                                joyMagnitude * joyMetersPerTick * Math.sin(radians) *
+                                    Math.cos(
+                                        Math.toRadians(staticLat),
+                                    ) * METERS_PER_DEGREE_LAT
+                            staticLat += deltaLat
+                            staticLng += deltaLng
+                            val distanceThisTick = joyMagnitude * joyMetersPerTick
+                            _totalDistanceTraveled.value += distanceThisTick
+                            _currentHeading.value = joyAngle
                             mockLocationProvider.setMockLocation(
-                                jitterLat, jitterLng,
-                                bearing = result.bearing,
-                                speed = speedVariation,
+                                staticLat, staticLng,
+                                bearing = joyAngle,
+                                speed = joySpeed,
                             )
-                            spoofLocationSource.pushSpoofedLocation(jitterLat, jitterLng, result.bearing, speedVariation)
-                            _currentLocation.value = LatLng(jitterLat, jitterLng)
-                            staticLat = jitterLat
-                            staticLng = jitterLng
-                            _totalDistanceTraveled.value = result.totalDistance
-                            _remainingDistance.value = speedSimulationUseCase.remainingDistance
-                            if (result.arrived) {
-                                stopSpoofing()
+                            spoofLocationSource.pushSpoofedLocation(staticLat, staticLng, joyAngle, joySpeed)
+                            _currentLocation.value = LatLng(staticLat, staticLng)
+                        }
+                        SpoofMode.DIRECTIONS -> {
+                            val speedVariation = speedMps * (1f + (kotlin.random.Random.nextFloat() - 0.5f) * 0.1f)
+                            val metersPerTick = speedVariation * (TICK_INTERVAL_MS / 1000f)
+                            val result = speedSimulationUseCase.tick(metersPerTick)
+                            if (result != null) {
+                                val jitterLat =
+                                    result.position.latitude +
+                                        (Random.nextDouble() - 0.5) * 0.000018
+                                val jitterLng =
+                                    result.position.longitude +
+                                        (Random.nextDouble() - 0.5) * 0.000018
+                                mockLocationProvider.setMockLocation(
+                                    jitterLat, jitterLng,
+                                    bearing = result.bearing,
+                                    speed = speedVariation,
+                                )
+                                spoofLocationSource.pushSpoofedLocation(jitterLat, jitterLng, result.bearing, speedVariation)
+                                _currentLocation.value = LatLng(jitterLat, jitterLng)
+                                staticLat = jitterLat
+                                staticLng = jitterLng
+                                _totalDistanceTraveled.value = result.totalDistance
+                                _remainingDistance.value = speedSimulationUseCase.remainingDistance
+                                if (result.arrived) {
+                                    stopSpoofing()
+                                }
                             }
                         }
                     }
-                }
 
-                updateNotification(staticLat, staticLng)
-                delay(TICK_INTERVAL_MS)
+                    updateNotification(staticLat, staticLng)
+                    delay(TICK_INTERVAL_MS)
+                }
             }
-        }
     }
 
     private fun stopSpoofing() {
@@ -221,33 +234,43 @@ class MockLocationService : Service() {
     }
 
     private fun createNotificationChannel() {
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            "Location Spoofing",
-            NotificationManager.IMPORTANCE_LOW,
-        ).apply {
-            description = "Shows when location spoofing is active"
-            setSound(null, null)
-            enableVibration(false)
-        }
+        val channel =
+            NotificationChannel(
+                CHANNEL_ID,
+                "Location Spoofing",
+                NotificationManager.IMPORTANCE_LOW,
+            ).apply {
+                description = "Shows when location spoofing is active"
+                setSound(null, null)
+                enableVibration(false)
+            }
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(channel)
     }
 
-    private fun buildNotification(lat: Double, lng: Double): Notification {
-        val stopIntent = Intent(this, MockLocationService::class.java).apply {
-            action = ACTION_STOP
-        }
-        val stopPendingIntent = PendingIntent.getService(
-            this, 0, stopIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-        )
+    private fun buildNotification(
+        lat: Double,
+        lng: Double,
+    ): Notification {
+        val stopIntent =
+            Intent(this, MockLocationService::class.java).apply {
+                action = ACTION_STOP
+            }
+        val stopPendingIntent =
+            PendingIntent.getService(
+                this,
+                0,
+                stopIntent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            )
 
         val coordinateText = formatCoordinate(lat, lng)
-        val modeText = when (spoofMode) {
-            SpoofMode.STATIC -> "Static"
-            SpoofMode.DIRECTIONS -> "Directions"
-            SpoofMode.JOYSTICK -> "Joystick"
-        }
+        val modeText =
+            when (spoofMode) {
+                SpoofMode.STATIC -> "Static"
+                SpoofMode.DIRECTIONS -> "Directions"
+                SpoofMode.JOYSTICK -> "Joystick"
+            }
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(this, CHANNEL_ID)
@@ -271,7 +294,10 @@ class MockLocationService : Service() {
         }
     }
 
-    private fun updateNotification(lat: Double, lng: Double) {
+    private fun updateNotification(
+        lat: Double,
+        lng: Double,
+    ) {
         val coord = formatCoordinate(lat, lng)
         if (coord == lastNotifText) return
         lastNotifText = coord
@@ -280,7 +306,10 @@ class MockLocationService : Service() {
         manager.notify(NOTIFICATION_ID, notification)
     }
 
-    private fun formatCoordinate(lat: Double, lng: Double): String {
+    private fun formatCoordinate(
+        lat: Double,
+        lng: Double,
+    ): String {
         val latDir = if (lat >= 0) "N" else "S"
         val lngDir = if (lng >= 0) "E" else "W"
         return String.format("%.4f°%s, %.4f°%s", Math.abs(lat), latDir, Math.abs(lng), lngDir)
@@ -288,11 +317,12 @@ class MockLocationService : Service() {
 
     private fun logHistoryStart() {
         scope.launch {
-            historySessionId = historyRepo.startSession(
-                mode = spoofMode.name,
-                lat = staticLat,
-                lng = staticLng,
-            )
+            historySessionId =
+                historyRepo.startSession(
+                    mode = spoofMode.name,
+                    lat = staticLat,
+                    lng = staticLng,
+                )
         }
     }
 
@@ -300,9 +330,12 @@ class MockLocationService : Service() {
         if (historySessionId <= 0) return
         val id = historySessionId
         historySessionId = -1
-        val distance = if (spoofMode == SpoofMode.JOYSTICK || spoofMode == SpoofMode.DIRECTIONS) {
-            _totalDistanceTraveled.value.toFloat()
-        } else null
+        val distance =
+            if (spoofMode == SpoofMode.JOYSTICK || spoofMode == SpoofMode.DIRECTIONS) {
+                _totalDistanceTraveled.value.toFloat()
+            } else {
+                null
+            }
         scope.launch {
             historyRepo.endSession(id, distance)
         }

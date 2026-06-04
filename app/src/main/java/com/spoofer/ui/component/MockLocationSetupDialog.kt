@@ -15,9 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun MockLocationSetupDialog(
-    onDismiss: () -> Unit,
-) {
+fun MockLocationSetupDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
 
     AlertDialog(

@@ -25,22 +25,27 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-
     @Provides
     @Singleton
-    fun provideLocationManager(@ApplicationContext context: Context): LocationManager {
+    fun provideLocationManager(
+        @ApplicationContext context: Context,
+    ): LocationManager {
         return context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     }
 
     @Provides
     @Singleton
-    fun provideFusedLocationProviderClient(@ApplicationContext context: Context): FusedLocationProviderClient {
+    fun provideFusedLocationProviderClient(
+        @ApplicationContext context: Context,
+    ): FusedLocationProviderClient {
         return LocationServices.getFusedLocationProviderClient(context)
     }
 
     @Provides
     @Singleton
-    fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
+    fun provideDataStore(
+        @ApplicationContext context: Context,
+    ): DataStore<Preferences> {
         return context.dataStore
     }
 
@@ -56,9 +61,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): SpooferDatabase {
+    fun provideDatabase(
+        @ApplicationContext context: Context,
+    ): SpooferDatabase {
         return Room.databaseBuilder(
-            context, SpooferDatabase::class.java, "spoofer.db",
+            context,
+            SpooferDatabase::class.java,
+            "spoofer.db",
         ).build()
     }
 

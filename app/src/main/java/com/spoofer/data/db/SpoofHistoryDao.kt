@@ -17,7 +17,11 @@ interface SpoofHistoryDao {
     suspend fun insert(entry: SpoofHistoryEntity): Long
 
     @Query("UPDATE spoof_history SET endTime = :endTime, distanceTraveled = :distance WHERE id = :id")
-    suspend fun endSession(id: Long, endTime: Long, distance: Float?)
+    suspend fun endSession(
+        id: Long,
+        endTime: Long,
+        distance: Float?,
+    )
 
     @Query("DELETE FROM spoof_history")
     suspend fun deleteAll()

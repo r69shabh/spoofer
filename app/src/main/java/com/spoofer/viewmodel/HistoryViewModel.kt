@@ -16,29 +16,34 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HistoryViewModel @Inject constructor(
-    private val historyRepo: HistoryRepository,
-) : ViewModel() {
+class HistoryViewModel
+    @Inject
+    constructor(
+        private val historyRepo: HistoryRepository,
+    ) : ViewModel() {
+        private val selectedFilter = MutableStateFlow<String?>(null)
 
-    private val selectedFilter = MutableStateFlow<String?>(null)
+        @OptIn(ExperimentalCoroutinesApi::class)
+        val historyEntries: StateFlow<List<SpoofHistoryEntity>> =
+            selectedFilter
+                .flatMapLatest { filter ->
+                    if (filter == null) {
+                        historyRepo.getAll()
+                    } else {
+                        historyRepo.getByMode(filter)
+                    }
+                }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val historyEntries: StateFlow<List<SpoofHistoryEntity>> = selectedFilter
-        .flatMapLatest { filter ->
-            if (filter == null) historyRepo.getAll()
-            else historyRepo.getByMode(filter)
+        val currentFilter: StateFlow<String?> = selectedFilter.asStateFlow()
+
+        fun setFilter(mode: String?) {
+            selectedFilter.value = mode
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val currentFilter: StateFlow<String?> = selectedFilter.asStateFlow()
-
-    fun setFilter(mode: String?) {
-        selectedFilter.value = mode
-    }
-
-    fun clearAll() {
-        viewModelScope.launch {
-            historyRepo.clearAll()
+        fun clearAll() {
+            viewModelScope.launch {
+                historyRepo.clearAll()
+            }
         }
     }
-}

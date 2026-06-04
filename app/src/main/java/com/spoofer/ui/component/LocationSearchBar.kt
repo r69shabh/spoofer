@@ -56,14 +56,15 @@ fun LocationSearchBar(
             query = newQuery
             searchJob?.cancel()
             if (newQuery.length >= 2) {
-                searchJob = scope.launch {
-                    delay(300)
-                    try {
-                        suggestions = onSearch(newQuery)
-                    } catch (_: Exception) {
-                        suggestions = emptyList()
+                searchJob =
+                    scope.launch {
+                        delay(300)
+                        try {
+                            suggestions = onSearch(newQuery)
+                        } catch (_: Exception) {
+                            suggestions = emptyList()
+                        }
                     }
-                }
             } else {
                 suggestions = emptyList()
             }
@@ -126,31 +127,34 @@ fun LocationSearchBar(
             }
         },
         shape = androidx.compose.foundation.shape.CircleShape,
-        colors = SearchBarDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        ),
+        colors =
+            SearchBarDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            ),
         tonalElevation = 3.dp,
         shadowElevation = 3.dp,
     ) {
         suggestions.forEach { place ->
-            val subtitle = place.locality.ifBlank {
-                val parts = place.label.split(",").drop(1)
-                parts.joinToString(",").trim()
-            }
+            val subtitle =
+                place.locality.ifBlank {
+                    val parts = place.label.split(",").drop(1)
+                    parts.joinToString(",").trim()
+                }
 
             ListItem(
                 headlineContent = { Text(place.name.ifBlank { place.label }, maxLines = 1) },
                 supportingContent = {
                     if (subtitle.isNotEmpty()) Text(subtitle, maxLines = 1)
                 },
-                modifier = Modifier
-                    .padding(horizontal = 4.dp)
-                    .clickable {
-                        isActive = false
-                        query = place.label
-                        suggestions = emptyList()
-                        onLocationSelected(LatLng(place.latitude, place.longitude))
-                    },
+                modifier =
+                    Modifier
+                        .padding(horizontal = 4.dp)
+                        .clickable {
+                            isActive = false
+                            query = place.label
+                            suggestions = emptyList()
+                            onLocationSelected(LatLng(place.latitude, place.longitude))
+                        },
             )
         }
     }

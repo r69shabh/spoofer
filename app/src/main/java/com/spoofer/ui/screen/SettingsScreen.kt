@@ -66,13 +66,14 @@ fun SettingsScreen(
                 },
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState()),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState()),
         ) {
             // Appearance
             CategoryHeader("Appearance")
@@ -114,12 +115,13 @@ fun SettingsScreen(
                 onValueChange = { scope.launch { viewModel.setGpsUpdateInterval(it.toLong()) } },
                 valueRange = 500f..5000f,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                colors = SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.primary,
-                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                ),
+                colors =
+                    SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                    ),
             )
-            
+
             ListItem(
                 headlineContent = { Text("GPS Jitter") },
                 supportingContent = { Text("Adds random variation to location") },
@@ -150,10 +152,11 @@ fun SettingsScreen(
                     onValueChange = { scope.launch { viewModel.setJitterIntensity(it) } },
                     valueRange = 1f..5f,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                    colors = SliderDefaults.colors(
-                        thumbColor = MaterialTheme.colorScheme.primary,
-                        activeTrackColor = MaterialTheme.colorScheme.primary,
-                    ),
+                    colors =
+                        SliderDefaults.colors(
+                            thumbColor = MaterialTheme.colorScheme.primary,
+                            activeTrackColor = MaterialTheme.colorScheme.primary,
+                        ),
                 )
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -168,9 +171,10 @@ fun SettingsScreen(
                 colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.background),
             )
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 72.dp, end = 24.dp, bottom = 16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 72.dp, end = 24.dp, bottom = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 TransportMode.entries.forEach { mode ->
@@ -178,10 +182,11 @@ fun SettingsScreen(
                         selected = transportMode == mode.name,
                         onClick = { scope.launch { viewModel.setDefaultTransportMode(mode.name) } },
                         label = { Text(mode.label) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        ),
+                        colors =
+                            FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            ),
                     )
                 }
             }
@@ -225,6 +230,6 @@ fun CategoryHeader(title: String) {
         text = title,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 24.dp, top = 24.dp, bottom = 8.dp)
+        modifier = Modifier.padding(start = 24.dp, top = 24.dp, bottom = 8.dp),
     )
 }
