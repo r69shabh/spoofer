@@ -6,15 +6,15 @@ import androidx.compose.ui.graphics.Color
 
 fun darkColorScheme() =
     androidx.compose.material3.darkColorScheme(
-        primary = Color(0xFF8AB4F8), // Google Blue Dark
+        primary = Color(0xFF8AB4F8),
         onPrimary = Color(0xFF002D69),
         primaryContainer = Color(0xFF1A73E8),
         onPrimaryContainer = Color(0xFFD3E3FD),
-        secondary = Color(0xFF81C995), // Google Green Dark
+        secondary = Color(0xFF81C995),
         onSecondary = Color(0xFF00391C),
         secondaryContainer = Color(0xFF1E8E3E),
         onSecondaryContainer = Color(0xFFE6F4EA),
-        tertiary = Color(0xFFF28B82), // Google Red Dark
+        tertiary = Color(0xFFF28B82),
         onTertiary = Color(0xFF601410),
         tertiaryContainer = Color(0xFFD93025),
         onTertiaryContainer = Color(0xFFFCE8E6),
@@ -22,7 +22,7 @@ fun darkColorScheme() =
         onError = Color(0xFF601410),
         errorContainer = Color(0xFF8C1D18),
         onErrorContainer = Color(0xFFFCE8E6),
-        background = Color(0xFF202124), // Google Dark Background
+        background = Color(0xFF202124),
         onBackground = Color(0xFFE8EAED),
         surface = Color(0xFF202124),
         onSurface = Color(0xFFE8EAED),
@@ -44,15 +44,15 @@ fun darkColorScheme() =
 
 fun lightColorScheme() =
     androidx.compose.material3.lightColorScheme(
-        primary = Color(0xFF1A73E8), // Google Blue Light
+        primary = Color(0xFF1A73E8),
         onPrimary = Color.White,
         primaryContainer = Color(0xFFD3E3FD),
         onPrimaryContainer = Color(0xFF041E49),
-        secondary = Color(0xFF1E8E3E), // Google Green Light
+        secondary = Color(0xFF1E8E3E),
         onSecondary = Color.White,
         secondaryContainer = Color(0xFFE6F4EA),
         onSecondaryContainer = Color(0xFF0D3C1A),
-        tertiary = Color(0xFFD93025), // Google Red Light
+        tertiary = Color(0xFFD93025),
         onTertiary = Color.White,
         tertiaryContainer = Color(0xFFFCE8E6),
         onTertiaryContainer = Color(0xFF601410),

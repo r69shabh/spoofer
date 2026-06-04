@@ -5,7 +5,10 @@ import com.spoofer.data.DirectionsRepository
 import com.spoofer.data.RouteInfo
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.*
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 @Singleton
 class SpeedSimulationUseCase
