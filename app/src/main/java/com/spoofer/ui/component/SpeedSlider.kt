@@ -20,6 +20,8 @@ fun SpeedSlider(
     speedKmh: Float,
     onSpeedChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
+    minKmh: Float = 1f,
+    maxKmh: Float = 120f,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
@@ -46,7 +48,7 @@ fun SpeedSlider(
         Slider(
             value = speedKmh,
             onValueChange = onSpeedChange,
-            valueRange = 1f..120f,
+            valueRange = minKmh..maxKmh,
             steps = 0,
             colors =
                 SliderDefaults.colors(

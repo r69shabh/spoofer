@@ -77,7 +77,10 @@ class SpoofLocationSource
 
         fun startRealRelay() {
             stopRealRelay()
-            val currentScope = scope ?: return
+            // Bug 9 fix: lazily create a scope if none exists (e.g. exitSpoofMode
+            // called before start() or after stop()).  Without this the map's blue
+            // dot freezes permanently after spoofing ends.
+            val currentScope = scope ?: CoroutineScope(SupervisorJob() + Dispatchers.Main).also { scope = it }
             realRelayJob =
                 currentScope.launch {
                     realLocationProvider.getLocationUpdates(1000).collect { location ->

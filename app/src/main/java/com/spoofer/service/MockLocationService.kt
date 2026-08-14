@@ -99,13 +99,15 @@ class MockLocationService : Service() {
                 destLat = intent.getDoubleExtra(EXTRA_DEST_LATITUDE, 0.0)
                 destLng = intent.getDoubleExtra(EXTRA_DEST_LONGITUDE, 0.0)
                 speedMps = intent.getFloatExtra(EXTRA_SPEED, 4.17f)
-                startSpoofing()
+                // Bug 5 fix: initialize the route BEFORE starting the ticker so
+                // the first tick has valid polyline data and doesn't freeze/teleport.
                 scope.launch(Dispatchers.IO) {
                     speedSimulationUseCase.initialize(
                         LatLng(staticLat, staticLng),
                         LatLng(destLat, destLng),
                     )
                     _remainingDistance.value = speedSimulationUseCase.remainingDistance
+                    startSpoofing()
                 }
                 return START_STICKY
             }
@@ -116,6 +118,12 @@ class MockLocationService : Service() {
     }
 
     private fun startSpoofing() {
+        // Bug 6 fix: always cancel the previous ticker job before resetting state
+        // to prevent race conditions when SpeedSimulationUseCase (a singleton) is
+        // re-initialized for a new route while the old ticker is still running.
+        tickerJob?.cancel()
+        tickerJob = null
+
         _isActive.value = true
         _currentMode.value = spoofMode
         _elapsedSeconds.value = 0L
@@ -192,8 +200,10 @@ class MockLocationService : Service() {
                                 )
                                 spoofLocationSource.pushSpoofedLocation(jitterLat, jitterLng, result.bearing, speedVariation)
                                 _currentLocation.value = LatLng(jitterLat, jitterLng)
-                                staticLat = jitterLat
-                                staticLng = jitterLng
+                                // Bug 8 fix: keep staticLat/Lng tracking the un-jittered route
+                                // position so the notification and state don't drift off-route.
+                                staticLat = result.position.latitude
+                                staticLng = result.position.longitude
                                 _totalDistanceTraveled.value = result.totalDistance
                                 _remainingDistance.value = speedSimulationUseCase.remainingDistance
                                 if (result.arrived) {

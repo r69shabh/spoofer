@@ -95,5 +95,6 @@ private fun formatElapsed(seconds: Long): String {
     val h = seconds / 3600
     val m = (seconds % 3600) / 60
     val s = seconds % 60
-    return String.format("%d:%02d:%02d", h, m, s)
+    // Bug 16 fix: use %02d for hours too so the format is always HH:MM:SS.
+    return String.format("%02d:%02d:%02d", h, m, s)
 }

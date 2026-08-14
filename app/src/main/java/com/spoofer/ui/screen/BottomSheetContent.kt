@@ -551,7 +551,9 @@ private fun JoystickPanel(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(12.dp))
-        SpeedSlider(speedKmh, onSpeedChange)
+        // Bug 15 fix: cap joystick speed at 30 km/h so the slider gives fine-grained
+        // control for manual movement (120 km/h default makes low speeds unworkable).
+        SpeedSlider(speedKmh, onSpeedChange, maxKmh = 30f)
         if (isSpoofing) {
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -125,6 +126,11 @@ fun MapScreen(
     val originMarkerState = rememberMarkerState()
     val targetMarkerState = rememberMarkerState()
 
+    // Bug 12 fix: remember the last known mode so StatusChip has content during its
+    // exit animation (spoofMode becomes null before the animation completes).
+    var lastKnownSpoofMode by remember { mutableStateOf<SpoofMode?>(null) }
+    LaunchedEffect(spoofMode) { if (spoofMode != null) lastKnownSpoofMode = spoofMode }
+
     val infiniteTransition = rememberInfiniteTransition(label = "spoof_pulse")
     val pulseRadius by infiniteTransition.animateFloat(
         initialValue = 12f,
@@ -166,20 +172,30 @@ fun MapScreen(
         }
     }
 
-    LaunchedEffect(targetLatLng) { 
-        targetLatLng?.let { 
-            targetMarkerState.position = it
-            if (isSpoofing && selectedMode == SpoofMode.STATIC) {
-                spoofViewModel.startStaticSpoof(it)
-            }
-        } 
+    LaunchedEffect(targetLatLng) {
+        // Bug 1 fix: removed startStaticSpoof() from here — it was restarting
+        // the service on every map tap while spoofing, causing location snaps.
+        // Static spoof only starts/updates from the explicit Start button press.
+        targetLatLng?.let { targetMarkerState.position = it }
     }
-    LaunchedEffect(originLatLng) { originLatLng?.let { originMarkerState.position = it } }
+    LaunchedEffect(originLatLng) {
+        originLatLng?.let { originMarkerState.position = it }
+        // Bug 14 fix: sync the origin text field to real coordinates when the
+        // GPS-derived origin loads, instead of showing the literal "My Location" string.
+        if (originText == "My Location" && originLatLng != null) {
+            originText = "%.5f, %.5f".format(originLatLng!!.latitude, originLatLng!!.longitude)
+        }
+    }
     LaunchedEffect(Unit) {
         mapViewModel.loadInitialLocation()
         spoofViewModel.checkMockLocationProvider()
     }
-    LaunchedEffect(cameraPosition) { cameraPosition?.let { cameraState.move(CameraUpdateFactory.newLatLngZoom(it, 16f)) } }
+    LaunchedEffect(cameraPosition, isSpoofing) {
+        // Bug 2 fix: don't move the camera to the real GPS position while spoofing is
+        // active — doing so fights the spoofed-location camera effect and causes a
+        // brief rubber-band snap back to the real location.
+        if (!isSpoofing) cameraPosition?.let { cameraState.move(CameraUpdateFactory.newLatLngZoom(it, 16f)) }
+    }
 
     LaunchedEffect(selectedMode, originLatLng, targetLatLng) {
         if (selectedMode == SpoofMode.DIRECTIONS && originLatLng != null && targetLatLng != null) {
@@ -333,7 +349,9 @@ fun MapScreen(
                     onSearch = { query -> mapViewModel.searchPlaces(query) },
                 )
                 Spacer(Modifier.height(8.dp))
-                spoofMode?.let { mode ->
+                // Bug 12 fix: drive AnimatedVisibility with isSpoofing, but render
+                // lastKnownSpoofMode (non-null) so the chip has content during exit.
+                lastKnownSpoofMode?.let { mode ->
                     StatusChip(
                         mode = mode,
                         elapsedSeconds = elapsedSeconds,
@@ -358,12 +376,16 @@ fun MapScreen(
 
             SmallFloatingActionButton(
                 onClick = {
-                    val current = cameraState.position.target
-                    cameraState.move(CameraUpdateFactory.newLatLngZoom(current, 17f))
+                    // Bug 11 fix: refresh the real GPS position so the camera moves
+                    // to where the device actually is, not just the current camera center.
+                    mapViewModel.loadInitialLocation()
                 },
                 modifier =
                     Modifier
                         .align(Alignment.BottomEnd)
+                        // Bug 10 fix: use navigationBarsPadding() so the FAB clears the
+                        // gesture navigation bar on edge-to-edge devices.
+                        .navigationBarsPadding()
                         .padding(end = 16.dp, bottom = 96.dp),
                 shape = androidx.compose.foundation.shape.CircleShape,
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -381,6 +403,9 @@ fun MapScreen(
                 modifier =
                     Modifier
                         .align(Alignment.BottomCenter)
+                        // Bug 10 fix: use navigationBarsPadding() instead of hardcoded
+                        // 80dp so the FAB sits above the gesture/nav bar on all devices.
+                        .navigationBarsPadding()
                         .padding(bottom = 80.dp)
                         .scale(fabScale),
                 interactionSource = fabInteraction,

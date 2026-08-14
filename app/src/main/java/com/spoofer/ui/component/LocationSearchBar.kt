@@ -70,11 +70,14 @@ fun LocationSearchBar(
             }
         },
         onSearch = { q ->
+            // Bug 13 fix: always collapse the bar; previously isActive=false was
+            // inside the inner `if`, so the bar stayed open when suggestions were empty.
             if (q.isNotBlank() && suggestions.isNotEmpty()) {
                 val first = suggestions.first()
                 onLocationSelected(LatLng(first.latitude, first.longitude))
                 query = first.label
             }
+            suggestions = emptyList()
             isActive = false
         },
         active = isActive,

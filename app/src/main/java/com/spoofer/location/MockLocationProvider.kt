@@ -16,7 +16,9 @@ class MockLocationProvider
             private set
 
         fun addTestProvider() {
-            if (isProviderAdded) return
+            // Always clean up first — guards against stale state when the service is
+            // restarted by START_STICKY without a proper removeTestProvider call.
+            removeTestProvider()
 
             @Suppress("DEPRECATION")
             listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, "fused").forEach { provider ->
@@ -94,7 +96,6 @@ class MockLocationProvider
 
                 location.extras =
                     android.os.Bundle().apply {
-                        putInt("mockLocation", 1)
                         putBoolean("mockLocation", true)
                     }
 

@@ -95,9 +95,12 @@ fun JoystickOverlay(
                                             thumbOffset = Offset.Zero
                                             onInput(JoystickInput(angle = 0f, magnitude = 0f))
                                         },
-                                    ) { change, _ ->
-                                        val center = Offset(size.width / 2f, size.height / 2f)
-                                        val rawOffset = change.position - center
+                                    ) { change, dragAmount ->
+                                        // Bug 4 fix: accumulate with the dragAmount DELTA rather than
+                                        // computing from the absolute touch position.  The absolute
+                                        // approach rubber-bands whenever the coordinate origin
+                                        // of the drag gesture doesn't match the joystick center.
+                                        val rawOffset = thumbOffset + dragAmount
                                         val distance = sqrt(rawOffset.x * rawOffset.x + rawOffset.y * rawOffset.y)
                                         val clampedOffset =
                                             if (distance > maxOffset) {
