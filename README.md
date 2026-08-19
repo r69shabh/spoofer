@@ -30,9 +30,14 @@
 
 ## 🌍 Project Overview
 
-Location spoofing is a critical tool for developers, privacy advocates, and general power users. Whether you are QA testing a location-based social media application, playing a geo-fenced mobile game, or bypassing regional network locks, having precise, system-wide control over your device's telemetry is essential.
+**Spoofer** is a native Android application built with Kotlin and Jetpack Compose that allows users to override their device's GPS coordinates for testing and privacy purposes, featuring interactive map integration, joystick-controlled movement, and simulated multi-point route navigation. The project's quality and stability are maintained through a professional QA architecture, featuring comprehensive manual test case documentation, structured bug reporting templates, and an automated end-to-end testing suite built with Python, Pytest, and Appium.
 
-**Spoofer** is not just another fake GPS app. It is designed to be a highly resilient location injection engine. Unlike legacy spoofers that rely on outdated UI frameworks and simple GPS overrides, Spoofer is built entirely on **Material Design 3**, driven by a reactive **MVVM** architecture, and explicitly targets modern Android (API 26 to API 35) security paradigms. It intercepts the Android OS `LocationManager` pipeline and completely replaces hardware GPS telemetry with software-generated coordinates, speeds, and bearings.
+### 🎯 Key Accomplishments & QA Implementations
+* Built a native Android application using Kotlin and Jetpack Compose, actively participating in release testing to maintain overall product quality.
+* Designed and executed functional, regression, smoke, and sanity testing across different simulated devices and complex user flows.
+* Analyzed product requirements to author meaningful test scenarios and test cases, expanding overall test coverage and improving QA processes.
+* Developed an automated end-to-end (E2E) testing framework using Python, Pytest, and Appium to validate critical customer journeys.
+* Established standardized documentation templates to identify, reproduce, and track bugs with clear steps, ensuring validated fixes do not reoccur.
 
 ---
 
