@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -6,6 +8,18 @@ plugins {
     id("com.google.devtools.ksp")
     id("org.jlleitschuh.gradle.ktlint")
 }
+
+// Keep release credentials local. Debug builds do not require this file.
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.isFile) {
+        keystorePropertiesFile.inputStream().use { load(it) }
+    }
+}
+val hasReleaseSigning = keystorePropertiesFile.isFile
+fun requiredSigningProperty(name: String): String =
+    keystoreProperties.getProperty(name)?.takeIf { it.isNotBlank() }
+        ?: error("Missing $name in local keystore.properties")
 
 android {
     namespace = "com.spoofer"
@@ -27,11 +41,13 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            storeFile = file("spoofer-release.keystore")
-            storePassword = "spoofer123"
-            keyAlias = "spoofer"
-            keyPassword = "spoofer123"
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = rootProject.file(requiredSigningProperty("storeFile"))
+                storePassword = requiredSigningProperty("storePassword")
+                keyAlias = requiredSigningProperty("keyAlias")
+                keyPassword = requiredSigningProperty("keyPassword")
+            }
         }
     }
 
@@ -39,7 +55,9 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
