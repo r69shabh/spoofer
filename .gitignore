@@ -11,3 +11,8 @@ local.properties
 /app/build
 /app/release
 *.keystore
+
+# Local release-signing credentials and private keys
+/keystore.properties
+*.jks
+*.p12
